@@ -6,6 +6,7 @@ import { connectDB } from './config/database.js'
 import authRoutes from './routes/authRoutes.js'
 import bettingRoutes from './routes/bettingRoutes.js'
 import walletRoutes from './routes/walletRoutes.js'
+import path from 'path'
 
 const app = express()
 
@@ -22,6 +23,17 @@ connectDB()
 app.use('/api/auth', authRoutes)
 app.use('/api/betting', bettingRoutes)
 app.use('/api/wallet', walletRoutes)
+
+// Serve frontend static files if present
+const publicPath = path.resolve(process.cwd(), 'public')
+app.use(express.static(publicPath))
+app.get('*', (req, res, next) => {
+  // If request is for API route, skip
+  if (req.path.startsWith('/api/')) return next()
+  res.sendFile(path.join(publicPath, 'index.html'), err => {
+    if (err) next()
+  })
+})
 
 // Health check
 app.get('/api/health', (_req, res) => {
